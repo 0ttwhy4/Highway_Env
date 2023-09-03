@@ -71,7 +71,7 @@ class ActionType(object):
 class ContinuousAction(ActionType):
 
     """
-    An continuous action space for throttle and/or steering angle.
+    A continuous action space for throttle and/or steering angle.
 
     If both throttle and steering are enabled, they are set in this order: [throttle, steering]
 
@@ -177,7 +177,7 @@ class DiscreteAction(ContinuousAction):
 class DiscreteMetaAction(ActionType):
 
     """
-    An discrete action space of meta-actions: lane changes, and cruise control set-point.
+    A discrete action space of meta-actions: lane changes, and cruise control set-point.
     """
 
     ACTIONS_ALL = {

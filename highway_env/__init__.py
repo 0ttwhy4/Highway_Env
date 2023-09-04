@@ -101,3 +101,14 @@ def register_highway_envs():
         entry_point='highway_env.envs:UTurnEnv'
     )
 
+    # myhighway_env.py
+    register(
+        id='my_highway-v0',
+        entry_point='highway_env.envs:MyHighwayEnv'
+    )
+
+    # myhighway_env.py(fast)
+    register(
+        id='my_highway-fast-v0',
+        entry_point='highway_env.envs:MyHighwayEnvFast'
+    )

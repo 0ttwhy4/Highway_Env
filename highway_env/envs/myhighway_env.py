@@ -12,7 +12,7 @@ from highway_env.vehicle.kinematics import Vehicle
 
 Observation = np.ndarray
 
-class MyHighWay(AbstractEnv):
+class MyHighwayEnv(AbstractEnv):
     """
     A highway driving environment.
 
@@ -27,13 +27,13 @@ class MyHighWay(AbstractEnv):
                 "type": "Kinematics"
             },
             "action": {
-                "type": "DiscreteAction"
+                "type": "DiscreteMetaAction"
             },
             "lanes_count": 4,
             "vehicles_count": 50,
             "controlled_vehicles": 1,
             "initial_lane_id": None,
-            "duration": 500,  # [s]
+            "duration": 50,  # [s]
             "ego_spacing": 2,  # Ideal spacing with the front vehicle
             "vehicles_density": 1,
             "collision_reward": -1,  # The reward received when colliding with a vehicle.
@@ -44,16 +44,13 @@ class MyHighWay(AbstractEnv):
             "lane_change_reward": 0,  # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
             "normalize_reward": True,
-            "offroad_terminal": False,
-            "random_obstacle": False,
-            "sudden_brake": False,
+            "offroad_terminal": False
         })
         return config
 
     def _reset(self) -> None:
         self._create_road()
         self._create_vehicles()
-
 
     def _create_road(self):
         """Create a road composed of straight adjacent lanes."""
@@ -81,6 +78,7 @@ class MyHighWay(AbstractEnv):
                 vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"])
                 vehicle.randomize_behavior()
                 self.road.vehicles.append(vehicle)
+
     def _reward(self, action: Action) -> float:
         """
         The reward is written to foster driving at a relative high speed(but within speed limit),keeping a safe spacing
@@ -89,6 +87,14 @@ class MyHighWay(AbstractEnv):
         :return: the reward it gets
         """
         rewards = self._rewards(action)
+        reward = sum(self.config.get(name, 0) * reward for name, reward in rewards.items())
+        if self.config["normalize_reward"]:
+            reward = utils.lmap(reward,
+                                [self.config["collision_reward"],
+                                 self.config["high_speed_reward"] + self.config["right_lane_reward"]],
+                                [0, 1])
+        reward *= rewards['on_road_reward']
+        return reward
 
     def _rewards(self, action: Action) -> Dict[Text, float]:
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
@@ -97,17 +103,8 @@ class MyHighWay(AbstractEnv):
         # Use forward speed rather than speed, see https://github.com/eleurent/highway-env/issues/268
         forward_speed = self.vehicle.speed * np.cos(self.vehicle.heading)
         scaled_speed = utils.lmap(forward_speed, self.config["reward_speed_range"], [0, 1])
-        # Foster agents to keep a safe spacing with its front vehicle
-        v = self.vehicle.speed
-        if v >= 27.78:
-            safe_spacing = 5
-        elif v >= 16.67:
-            safe_spacing = v * 0.18
-        elif 0 <= v < 16.67:
-            safe_spacing = 2.5
 
         return {
-            "safe_spacing_reward": 0.9 * int(self.vehicle.ego_spacing >= safe_spacing),
             "collision_reward": float(self.vehicle.crashed),
             "right_lane_reward": lane / max(len(neighbours) - 1, 1),
             "high_speed_reward": np.clip(scaled_speed, 0, 1),
@@ -123,3 +120,29 @@ class MyHighWay(AbstractEnv):
         """The episode is truncated if the time limit is reached."""
         return self.time >= self.config["duration"]
 
+
+class MyHighwayEnvFast(MyHighwayEnv):
+    """
+    A variant of highway-v0 with faster execution:
+        - lower simulation frequency
+        - fewer vehicles in the scene (and fewer lanes, shorter episode duration)
+        - only check collision of controlled vehicles with others
+    """
+    @classmethod
+    def default_config(cls) -> dict:
+        cfg = super().default_config()
+        cfg.update({
+            "simulation_frequency": 5,
+            "lanes_count": 3,
+            "vehicles_count": 20,
+            "duration": 30,  # [s]
+            "ego_spacing": 1.5,
+        })
+        return cfg
+
+    def _create_vehicles(self) -> None:
+        super()._create_vehicles()
+        # Disable collision check for uncontrolled vehicles
+        for vehicle in self.road.vehicles:
+            if vehicle not in self.controlled_vehicles:
+                vehicle.check_collisions = False

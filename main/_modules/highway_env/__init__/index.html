@@ -394,8 +394,19 @@
     <span class="n">register</span><span class="p">(</span>
         <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;u-turn-v0&#39;</span><span class="p">,</span>
         <span class="n">entry_point</span><span class="o">=</span><span class="s1">&#39;highway_env.envs:UTurnEnv&#39;</span>
-    <span class="p">)</span></div>
+    <span class="p">)</span>
 
+    <span class="c1"># myhighway_env.py</span>
+    <span class="n">register</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my_highway-v0&#39;</span><span class="p">,</span>
+        <span class="n">entry_point</span><span class="o">=</span><span class="s1">&#39;highway_env.envs:MyHighwayEnv&#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># myhighway_env.py(fast)</span>
+    <span class="n">register</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my_highway-fast-v0&#39;</span><span class="p">,</span>
+        <span class="n">entry_point</span><span class="o">=</span><span class="s1">&#39;highway_env.envs:MyHighwayEnvFast&#39;</span>
+    <span class="p">)</span></div>
 
 </pre></div>
           </article>

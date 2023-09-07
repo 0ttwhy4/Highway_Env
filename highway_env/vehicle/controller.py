@@ -115,7 +115,7 @@ class ControlledVehicle(Vehicle):
 
     def steering_control(self, target_lane_index: LaneIndex) -> float:
         """
-        Steer the vehicle to follow the center of an given lane.
+        Steer the vehicle to follow the center of a given lane.
 
         1. Lateral position is controlled by a proportional controller yielding a lateral speed command
         2. Lateral speed command is converted to a heading reference

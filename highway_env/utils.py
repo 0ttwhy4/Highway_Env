@@ -218,6 +218,10 @@ def are_polygons_intersecting(a: Vector, b: Vector,
         translation = min_distance * translation_axis
     return intersecting, will_intersect, translation
 
+def is_polygon_touching_fullline(self) -> bool:
+    """Return whether a polygon object is touching the full lines on the road"""
+
+
 
 def confidence_ellipsoid(data: Dict[str, np.ndarray], lambda_: float = 1e-5, delta: float = 0.1, sigma: float = 0.1,
                          param_bound: float = 1.0) -> Tuple[np.ndarray, np.ndarray, float]:

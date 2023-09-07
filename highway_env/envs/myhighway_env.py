@@ -37,14 +37,15 @@ class MyHighwayEnv(AbstractEnv):
             "ego_spacing": 2,  # Ideal spacing with the front vehicle
             "vehicles_density": 1,
             "collision_reward": -1,  # The reward received when colliding with a vehicle.
-            "right_lane_reward": 0.1,  # The reward received when driving on the right-most lanes, linearly mapped to
+            "in_lane_reward": 0.1,  # The reward received when driving in the lanes, linearly mapped to
                                        # zero for other lanes.
             "high_speed_reward": 0.4,  # The reward received when driving at full speed, linearly mapped to zero for
                                        # lower speeds according to config["reward_speed_range"].
             "lane_change_reward": 0,  # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
+            "on_continuous_line_reward": -0.5,
             "normalize_reward": True,
-            "offroad_terminal": False
+            "offroad_terminal": False,
         })
         return config
 
@@ -91,9 +92,8 @@ class MyHighwayEnv(AbstractEnv):
         if self.config["normalize_reward"]:
             reward = utils.lmap(reward,
                                 [self.config["collision_reward"],
-                                 self.config["high_speed_reward"] + self.config["right_lane_reward"]],
+                                 self.config["high_speed_reward"] + self.config["in_lane_reward"]],
                                 [0, 1])
-        reward *= rewards['on_road_reward']
         return reward
 
     def _rewards(self, action: Action) -> Dict[Text, float]:
@@ -106,7 +106,7 @@ class MyHighwayEnv(AbstractEnv):
 
         return {
             "collision_reward": float(self.vehicle.crashed),
-            "right_lane_reward": lane / max(len(neighbours) - 1, 1),
+            "on_continuous_line_reward": -0.5 * float(self.vehicle.is_riding_on_continuous_line()),
             "high_speed_reward": np.clip(scaled_speed, 0, 1),
             "on_road_reward": float(self.vehicle.on_road)
         }
@@ -119,6 +119,8 @@ class MyHighwayEnv(AbstractEnv):
     def _is_truncated(self) -> bool:
         """The episode is truncated if the time limit is reached."""
         return self.time >= self.config["duration"]
+
+
 
 
 class MyHighwayEnvFast(MyHighwayEnv):

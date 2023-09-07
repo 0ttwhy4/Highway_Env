@@ -15,7 +15,7 @@ class Vehicle(RoadObject):
     A moving vehicle on a road, and its kinematics.
 
     The vehicle is represented by a dynamical system: a modified bicycle model.
-    It's state is propagated depending on its steering and acceleration actions.
+    Its state is propagated depending on its steering and acceleration actions.
     """
 
     LENGTH = 5.0
@@ -156,7 +156,7 @@ class Vehicle(RoadObject):
         elif self.prediction_type == 'constant_steering':
             action = {'acceleration': 0.0, 'steering': self.action['steering']}
         else:
-            raise ValueError("Unknown predition type")
+            raise ValueError("Unknown prediction type")
 
         dt = np.diff(np.concatenate(([0.0], times)))
 

@@ -32,10 +32,10 @@ class AbstractLane(object):
     @abstractmethod
     def local_coordinates(self, position: np.ndarray) -> Tuple[float, float]:
         """
-        Convert a world position to local lane coordinates.
+        将全局坐标转换为车道的局部坐标
 
-        :param position: a world position [m]
-        :return: the (longitudinal, lateral) lane coordinates [m]
+        :param position: 全局坐标 [m]
+        :return: 车道坐标（纵， 横） [m]
         """
         raise NotImplementedError()
 
@@ -52,7 +52,7 @@ class AbstractLane(object):
     @abstractmethod
     def width_at(self, longitudinal: float) -> float:
         """
-        Get the lane width at a given longitudinal lane coordinate.
+        获取指定路程处的本车道宽
 
         :param longitudinal: longitudinal lane coordinate [m]
         :return: the lane width [m]
@@ -93,7 +93,6 @@ class AbstractLane(object):
         is_on = np.abs(lateral) <= self.width_at(longitudinal) / 2 + margin and \
             -self.VEHICLE_LENGTH <= longitudinal < self.length + self.VEHICLE_LENGTH
         return is_on
-
     def is_reachable_from(self, position: np.ndarray) -> bool:
         """
         Whether the lane is reachable from a given world position
@@ -151,7 +150,7 @@ class StraightLane(AbstractLane):
                  width: float = AbstractLane.DEFAULT_WIDTH,
                  line_types: Tuple[LineType, LineType] = None,
                  forbidden: bool = False,
-                 speed_limit: float = 20,
+                 speed_limit: float = 33.33,
                  priority: int = 0) -> None:
         """
         New straight lane.

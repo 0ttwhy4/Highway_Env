@@ -229,7 +229,8 @@ class RoadNetwork(object):
         for lane in range(lanes):
             origin = np.array([start, lane * StraightLane.DEFAULT_WIDTH])
             end = np.array([start + length, lane * StraightLane.DEFAULT_WIDTH])
-            rotation = np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+            rotation = np.array([[np.cos(angle), np.sin(angle)],
+                                 [-np.sin(angle), np.cos(angle)]])
             origin = rotation @ origin
             end = rotation @ end
             line_types = [LineType.CONTINUOUS_LINE if lane == 0 else LineType.STRIPED,

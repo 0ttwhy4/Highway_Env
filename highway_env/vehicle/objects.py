@@ -16,7 +16,7 @@ class RoadObject(ABC):
     """
     Common interface for objects that appear on the road.
 
-    For now we assume all objects are rectangular.
+    For now, we assume all objects are rectangular.
     """
 
     LENGTH: float = 2  # Object length [m]
@@ -35,6 +35,7 @@ class RoadObject(ABC):
         self.speed = speed
         self.lane_index = self.road.network.get_closest_lane_index(self.position, self.heading) if self.road else np.nan
         self.lane = self.road.network.get_lane(self.lane_index) if self.road else None
+        self.outside_lane_index = np.array([False, False])
 
         # Enable collision with other collidables
         self.collidable = True
@@ -167,6 +168,36 @@ class RoadObject(ABC):
     def on_road(self) -> bool:
         """ Is the object on its current lane, or off-road? """
         return self.lane.on_lane(self.position)
+
+    def outside_lane_index(self) -> None:
+        """
+        Is the object riding on the lane where its geometric center locates in?If not,which side of the lane
+        is the object crossing?
+        """
+        index = np.array([False, False])
+        if self.lane:
+            for point in self.polygon():
+                if self.lane.local_coordinates(point)[1] < -(self.lane.width_at(self.position[0])/2) \
+                        +self.lane.local_coordinates(self.position)[1]:
+                    index[0] = True
+                if self.lane.local_cooradinates(point)[1] > (self.lane.width_at(self.position[0])/2) \
+                        +self.lane.local_coordinates((self.position))[1]:
+                    index[1] = True
+        self.outside_lane_index = index
+    def is_riding_on_continuous_line(self) -> bool:
+        """Is the object on the full line of the lanes?"""
+        nw = self.road.network
+        lane_index = nw.get_closest_lane_index(self.position)
+        lane = nw.get_lane(lane_index)
+        type = lane.line_types
+        index = self.outside_lane_index
+        if (index[0] and type[0] == 3) or (index[1] and type[1] == 3):
+            return True
+        else:
+            return False
+
+
+
 
     def front_distance_to(self, other: "RoadObject") -> float:
         return self.direction.dot(other.position - self.position)
